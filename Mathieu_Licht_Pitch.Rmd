@@ -1,0 +1,100 @@
+---
+title: "Pitch: Geographical information system for health-related outcomes"
+author: "Dr. Mathieu Licht"
+date: "2024-06-16"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(leaflet)
+library(tidyverse)
+```
+
+## Tool overview
+- **Aim:** detect spatial patterns of health-related outcomes
+- **Data source:** Centers for Disease Control and Prevention (CDC)
+- **Demo:** restricted to one region, here: California (USA)
+
+## Health related outcomes for analysis
+The tool places markers on the map indicating the crude (i.e., unadjusted) prevalence of various outcomes, like: 
+
+- Diseases (e.g., chronic kidney disease)
+- Risk factors (e.g., smoking)
+- Preventive measures (e.g., cancer screening)
+- Disabilities 
+- Health status
+
+Prevalences are stratified across census tracts.
+
+## Concept (map)
+Example for 2 locations: diabetes prevalence. 
+
+- More blueish colors and bigger circles indicate a higher prevalence
+- Click on a marker to learn more about the location (population size, prevalence rate in %, FIPS code).  
+
+```{r show-map, echo = FALSE}
+my_map <- leaflet() %>%
+  addTiles()  %>% 
+  addCircleMarkers(
+    lat = 37.86754, 
+    lng = -122.2318,
+    radius = 1.5 * 8.4, 
+    weight = 1, 
+    fillColor = "#DCE319", 
+    fillOpacity = 0.7,
+    popup = "Alameda, Tract FIPS 6001400100 <br> Total Population: 2937 <br> Mean crude prevalence: 8.4%"
+  ) %>% 
+  addCircleMarkers(
+    lat = 37.81204, 
+    lng = -122.2824,
+    radius = 1.5 * 13, 
+    weight = 1, 
+    fillColor = "#2D708E", 
+    fillOpacity = 0.7,
+    popup = "Alameda, Tract FIPS 6001402400 <br> Total Population: 2351 <br> Mean crude prevalence: 13%"
+  ) 
+
+my_map
+```
+
+## Additional descriptive statistics 
+For each prevalence, the tool will display summary statistics, as shown below:
+
+
+```{r randomexample, echo = FALSE}
+set.seed = 123
+random_prevalence <- rnorm(2000, 8, sd = 2)
+
+the_mean <- round(mean(random_prevalence), digits = 1)
+the_sd   <- round(sd(random_prevalence), digits = 1)
+the_ci_lower <- round(the_mean  - 1.96 * the_sd / sqrt (length(random_prevalence)), digits = 1)
+the_ci_upper <- round(the_mean  + 1.96 * the_sd / sqrt (length(random_prevalence)), digits = 1)
+
+the_median <- round(median(random_prevalence, na.rm = TRUE), digits = 1)
+the_q1 <- round(quantile(random_prevalence, prob=0.25)[[1]], digits = 1)
+the_q3 <- round(quantile(random_prevalence, prob=0.75)[[1]], digits = 1)
+
+```
+
+**Prevalence (%):**
+
+- **Mean (SD):** `r the_mean` (`r the_sd`)
+- **95% Confidence interval:** `r the_ci_lower` to `r the_ci_upper`
+- **Median (quartile 1; 3):** `r the_median` (`r the_q1`; `r the_q3`)  
+
+```{r histogram, echo = FALSE, warning = FALSE, fig.height = 4}
+ggplot(data = data.frame(x = random_prevalence), aes(x = x))  + 
+            geom_histogram(color = "black" , fill = "#19d68f", show.legend = FALSE, binwidth = 2) +
+            xlab("Crude prevalence (%)") +
+            ylab("Count")+ 
+            theme_bw() 
+```
+
+## Other features
+
+- Switch between 36&nbsp;health-related outcomes on the fly
+- Customize circle marker options (size, color, scale to population size or prevalence)
+- Filter for ranges (population, prevalences) 
+- Customize bin widths of histograms
+
